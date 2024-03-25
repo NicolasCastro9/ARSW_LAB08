@@ -52,11 +52,14 @@ var app = (function () {
     
 
     return {
-
+        // evento de clic en el canvas para agregar puntos y 
+        //establecer la conexión WebSocket para recibir puntos de otros usuarios
         init: function () {
-            var can = document.getElementById("canvas");
-            
-            //websocket connection
+            canvas = document.getElementById("canvas");
+            canvas.addEventListener("click", function (event) {
+                var mousePosition = getMousePosition(event);
+                app.publishPoint(mousePosition.x, mousePosition.y);
+            });
             connectAndSubscribe();
         },
 
