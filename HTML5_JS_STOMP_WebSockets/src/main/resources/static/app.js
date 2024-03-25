@@ -8,6 +8,12 @@ var app = (function () {
             this.y=y;
         }        
     }
+
+    class Polygon{
+        constructor(points){
+            this.points = points;
+        }
+    }
     
     var stompClient = null;
     var canvas;
@@ -16,7 +22,7 @@ var app = (function () {
         var canvas = document.getElementById("canvas");
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
-        ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+        ctx.arc(point.x, point.y, 1, 0, 2 * Math.PI);
         ctx.stroke();
     };
     
@@ -45,12 +51,31 @@ var app = (function () {
                 // var y = newPoint.y;
                 // alert('Nuevo punto recibido - X: ' + x + ', Y: ' + y);
                 // var newPoint = new Point(x,y);
-                addPointToCanvas(newPoint);
+                if(topic.includes("newpoint")){
+                    addPointToCanvas(newPoint);
+                } else {
+                    var polygon = new Polygon(newPoint);
+                    drawNewPolygon(polygon);
+                }
             });
         });
 
     };
-    
+    var drawNewPolygon = function(polygon){
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.moveTo(polygon.points[0].x, polygon.points[0].y)
+        ctx.fillStyle = '#8B008B';
+        console.log("Longitud: " +  polygon.points.length);
+        for (var i = 1; i < polygon.points.length; i++) {
+            var point = polygon.points[i];
+            ctx.lineTo(point.x, point.y);
+        }
+        ctx.lineTo(polygon.points[0].x, polygon.points[0].y);
+        ctx.closePath();
+        ctx.fill();
+    }
     
 
     return {
@@ -86,8 +111,7 @@ var app = (function () {
             var pt=new Point(px,py);
             // console.info("publishing point at "+pt);
             addPointToCanvas(pt);
-            stompClient.send("/topic/newpoint",{}, JSON.stringify(pt));
-
+            stompClient.send("/app"+topic, {}, JSON.stringify(pt));
             //publicar el evento
         },
 
